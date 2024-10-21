@@ -36,6 +36,16 @@
 
         <!-- Add QuoteWidgetReceiver here with reference to quote_widget_info.xml -->
 
+        <receiver
+            android:name=".widget.QuoteWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/quote_widget_info" />
+        </receiver>
 
         <!-- This is used for the CoroutineWorker -->
         <provider
