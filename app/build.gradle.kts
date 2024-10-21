@@ -66,10 +66,10 @@ dependencies {
     implementation(libs.work)
 
     // Uncomment these when using Glance
-//    implementation(libs.glance.appwidget)
-//    implementation(libs.glance.appwidget.preview)
-//    implementation(libs.glance.material3)
-//    implementation(libs.glance.preview)
+    implementation(libs.glance.appwidget)
+    implementation(libs.glance.appwidget.preview)
+    implementation(libs.glance.material3)
+    implementation(libs.glance.preview)
 
     debugImplementation(libs.androidx.ui.tooling)
 }
