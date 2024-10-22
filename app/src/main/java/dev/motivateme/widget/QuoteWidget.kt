@@ -3,6 +3,8 @@ package dev.motivateme.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -11,13 +13,16 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.appWidgetBackground
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
+import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
+import androidx.glance.unit.ColorProvider
 import dev.motivateme.MainActivity
 
 // Create the GlanceAppWidget here named QuoteWidget
@@ -54,7 +59,9 @@ fun QuoteWidgetContent(
         modifier = modifier
             .fillMaxSize()
             .appWidgetBackground()
-            .clickable(actionStartActivity(intent)),
+            .clickable(actionStartActivity(intent))
+            .background(ColorProvider(Color.White))
+            .cornerRadius(10.dp),
     ) {
         Text(displayText)
     }
