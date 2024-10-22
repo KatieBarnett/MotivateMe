@@ -1,11 +1,15 @@
 package dev.motivateme.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalContext
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.provideContent
 import androidx.glance.layout.Alignment
@@ -14,6 +18,7 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
+import dev.motivateme.MainActivity
 
 // Create the GlanceAppWidget here named QuoteWidget
 
@@ -39,13 +44,17 @@ class QuoteWidget : GlanceAppWidget() {
 @Composable
 fun QuoteWidgetContent(
     displayText: String,
-    modifier: GlanceModifier = GlanceModifier
+    modifier: GlanceModifier = GlanceModifier,
 ) {
+    val context = LocalContext.current
+    val intent = Intent(context, MainActivity::class.java)
+    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .fillMaxSize()
-            .appWidgetBackground(),
+            .appWidgetBackground()
+            .clickable(actionStartActivity(intent)),
     ) {
         Text(displayText)
     }
