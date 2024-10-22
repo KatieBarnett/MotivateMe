@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -29,6 +30,11 @@ import dev.motivateme.widget.theme.MotivateMeGlanceTheme
 // Create the GlanceAppWidget here named QuoteWidget
 
 class QuoteWidget : GlanceAppWidget() {
+
+    companion object {
+        val KEY_TOPIC = stringPreferencesKey("topic")
+        val KEY_QUOTE = stringPreferencesKey("quote")
+    }
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
 
