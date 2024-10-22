@@ -1,4 +1,15 @@
 package dev.motivateme.widget.theme
 
-// Create the GlanceTheme here
+import androidx.compose.runtime.Composable
+import androidx.glance.GlanceTheme
 
+// Create the GlanceTheme here
+@Composable
+fun MotivateMeGlanceTheme(
+    content: @Composable () -> Unit,
+) {
+    GlanceTheme(
+        MotivateMeGlanceColorScheme.colors,
+        content = { content.invoke() }
+    )
+}
