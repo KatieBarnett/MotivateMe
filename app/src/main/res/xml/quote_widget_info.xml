@@ -9,4 +9,6 @@
     android:resizeMode="horizontal|vertical"
     tools:targetApi="s"
     android:widgetFeatures="reconfigurable"
-    android:configure="dev.motivateme.widget.QuoteWidgetConfigurationActivity" />
+    android:configure="dev.motivateme.widget.QuoteWidgetConfigurationActivity"
+    android:description="@string/widget_description"
+    android:previewImage="@drawable/quote_widget_preview"/>

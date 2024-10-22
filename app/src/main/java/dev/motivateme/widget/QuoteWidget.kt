@@ -42,7 +42,7 @@ import dev.motivateme.MainActivity
 import dev.motivateme.R
 import dev.motivateme.widget.theme.MotivateMeGlanceTheme
 
-class QuoteWidget : GlanceAppWidget() {
+class QuoteWidget : GlanceAppWidget(errorUiLayout = R.layout.widget_error_layout) {
 
     companion object {
         val KEY_TOPIC = stringPreferencesKey("topic")
@@ -82,7 +82,8 @@ fun QuoteWidgetContent(
             text = displayText,
             style = TextStyle(
                 color = GlanceTheme.colors.primary
-            )
+            ),
+            modifier = GlanceModifier.padding(8.dp)
         )
 
         Box(
