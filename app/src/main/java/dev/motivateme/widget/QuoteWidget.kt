@@ -16,6 +16,7 @@ import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.fillMaxSize
@@ -24,7 +25,6 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import dev.motivateme.MainActivity
-import dev.motivateme.data.sampleData
 import dev.motivateme.widget.theme.MotivateMeGlanceTheme
 
 // Create the GlanceAppWidget here named QuoteWidget
@@ -42,11 +42,10 @@ class QuoteWidget : GlanceAppWidget() {
         // Use `withContext` to switch to another thread for long
         // running operations.
 
-        val displayText = sampleData.first().quotes.first().text
-
         provideContent {
             // UI code here
             MotivateMeGlanceTheme {
+                val displayText = currentState(KEY_QUOTE) ?: "Quote not found"
                 QuoteWidgetContent(displayText)
             }
         }
