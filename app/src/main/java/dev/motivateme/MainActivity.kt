@@ -5,9 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.glance.appwidget.updateAll
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
@@ -18,6 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.motivateme.ui.screens.QuoteScreen
 import dev.motivateme.ui.screens.TopicScreen
 import dev.motivateme.ui.theme.MotivateMeTheme
+import dev.motivateme.widget.QuoteWidget
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -56,6 +59,9 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+            }
+            LaunchedEffect(Unit) {
+                QuoteWidget().updateAll(this@MainActivity)
             }
         }
     }
