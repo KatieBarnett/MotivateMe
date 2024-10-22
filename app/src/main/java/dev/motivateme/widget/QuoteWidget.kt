@@ -3,7 +3,6 @@ package dev.motivateme.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -22,8 +21,9 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
-import androidx.glance.unit.ColorProvider
+import androidx.glance.text.TextStyle
 import dev.motivateme.MainActivity
+import dev.motivateme.widget.theme.MotivateMeGlanceTheme
 
 // Create the GlanceAppWidget here named QuoteWidget
 
@@ -39,7 +39,7 @@ class QuoteWidget : GlanceAppWidget() {
 
         provideContent {
             // UI code here
-            GlanceTheme {
+            MotivateMeGlanceTheme {
                 QuoteWidgetContent(displayText)
             }
         }
@@ -60,10 +60,15 @@ fun QuoteWidgetContent(
             .fillMaxSize()
             .appWidgetBackground()
             .clickable(actionStartActivity(intent))
-            .background(ColorProvider(Color.White))
+            .background(GlanceTheme.colors.widgetBackground)
             .cornerRadius(10.dp),
     ) {
-        Text(displayText)
+        Text(
+            text = displayText,
+            style = TextStyle(
+                color = GlanceTheme.colors.primary
+            )
+        )
     }
 }
 
@@ -71,7 +76,7 @@ fun QuoteWidgetContent(
 @Composable
 @Preview
 fun QuoteWidgetContentPreview() {
-    GlanceTheme {
+    MotivateMeGlanceTheme {
         QuoteWidgetContent("Hello widget!")
     }
 }
