@@ -12,6 +12,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,6 +21,7 @@ import dev.motivateme.MainViewModel
 import dev.motivateme.R
 import dev.motivateme.ui.screens.TopicScreen
 import dev.motivateme.ui.theme.MotivateMeTheme
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class QuoteWidgetConfigurationActivity : ComponentActivity() {
@@ -54,9 +57,27 @@ class QuoteWidgetConfigurationActivity : ComponentActivity() {
                     topics = topics,
                     welcomeText = stringResource(R.string.widget_config_text),
                     onTopicClick = { topicName ->
-
                         // Save the widget state here
+                        val context = this@QuoteWidgetConfigurationActivity
+                        coroutineScope.launch {
+                            val manager = GlanceAppWidgetManager(context)
+                            val glanceId = manager.getGlanceIdBy(appWidgetId)
+                            updateAppWidgetState(context, glanceId) { prefs ->
+                                prefs[QuoteWidget.KEY_TOPIC] = topicName
+                                prefs[QuoteWidget.KEY_QUOTE] =
+                                    topics.firstOrNull {
+                                        it.name == topicName
+                                    }?.quotes?.firstOrNull()?.text ?: ""
+                            }
+                            QuoteWidget().update(context, glanceId)
 
+                            val resultValue = Intent().putExtra(
+                                AppWidgetManager.EXTRA_APPWIDGET_ID,
+                                appWidgetId
+                            )
+                            setResult(RESULT_OK, resultValue)
+                            finish()
+                        }
                     },
                     modifier = Modifier.fillMaxSize()
                 )
