@@ -23,6 +23,7 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import dev.motivateme.MainActivity
+import dev.motivateme.data.sampleData
 import dev.motivateme.widget.theme.MotivateMeGlanceTheme
 
 // Create the GlanceAppWidget here named QuoteWidget
@@ -35,7 +36,7 @@ class QuoteWidget : GlanceAppWidget() {
         // Use `withContext` to switch to another thread for long
         // running operations.
 
-        val displayText = "Hello widget!"
+        val displayText = sampleData.first().quotes.first().text
 
         provideContent {
             // UI code here
