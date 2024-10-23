@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -40,7 +41,16 @@ class MainViewModel @Inject constructor(
     val quotes: StateFlow<List<Quote>> = _quotes
 
     init {
-        generateTopics()
+        viewModelScope.launch {
+            if (!dataRepository.hasGeneratedTopics().first()) {
+                generateTopics()
+            } else {
+                dataRepository.getGeneratedTopics().collect {
+                    showLoading.emit(false)
+                    _generatedTopics.emit(it)
+                }
+            }
+        }
     }
 
     fun getQuotes(topicName: String) {
@@ -56,6 +66,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             showLoading.emit(true)
             val newTopics = geminiInterface.generateTopics()
+            dataRepository.saveGeneratedTopics(newTopics)
             _generatedTopics.emit(newTopics)
             showLoading.emit(false)
         }
