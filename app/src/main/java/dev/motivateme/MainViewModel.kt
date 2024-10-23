@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -37,8 +38,19 @@ class MainViewModel @Inject constructor(
     val quotes: StateFlow<List<Quote>> = _quotes
 
     init {
-        if (BuildConfig.IS_GEMINI_ENABLED) {
-            generateTopics()
+        viewModelScope.launch {
+            if (BuildConfig.IS_GEMINI_ENABLED) {
+                if (!dataRepository.hasGeneratedTopics().first()) {
+                    generateTopics()
+                } else {
+                    dataRepository.getGeneratedTopics().collect {
+                        showLoading.emit(false)
+                        _generatedTopics.emit(it)
+                    }
+                }
+            } else {
+                showLoading.emit(false)
+            }
         }
     }
 
@@ -55,6 +67,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             showLoading.emit(true)
             val newTopics = geminiInterface.generateTopics()
+            dataRepository.saveGeneratedTopics(newTopics)
             _generatedTopics.emit(newTopics)
             showLoading.emit(false)
         }
