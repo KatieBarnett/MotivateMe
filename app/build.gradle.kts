@@ -72,4 +72,7 @@ dependencies {
     implementation(libs.glance.preview)
 
     debugImplementation(libs.androidx.ui.tooling)
+
+    // Gemini SDK
+    implementation(libs.generativeai)
 }
