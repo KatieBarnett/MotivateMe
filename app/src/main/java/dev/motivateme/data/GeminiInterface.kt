@@ -48,4 +48,16 @@ class GeminiInterface @Inject constructor() {
         } ?: emptyList()
         return quotes
     }
+
+    suspend fun getSingleQuote(topicName: String?): Quote? {
+        if (topicName == null) return null
+        val response =
+            generativeModel?.generateContent(
+                "Give me a single quote on the topic of $topicName. Do not use any religious quotes."
+            )
+        val quote = response?.text?.let {
+            Quote(text = it.trim())
+        }
+        return quote
+    }
 }

@@ -63,6 +63,11 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    suspend fun getSingleQuote(topicName: String): Quote? {
+        val quote = topics.value.firstOrNull { it.name == topicName }?.quotes?.firstOrNull()
+        return quote ?: geminiInterface.getSingleQuote(topicName)
+    }
+
     private fun generateTopics() {
         viewModelScope.launch(Dispatchers.IO) {
             showLoading.emit(true)
