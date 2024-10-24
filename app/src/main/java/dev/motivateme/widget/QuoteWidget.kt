@@ -37,8 +37,15 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import dev.motivateme.MainActivity
 import dev.motivateme.R
+import dev.motivateme.data.GeminiInterface
 import dev.motivateme.data.sampleData
 import dev.motivateme.widget.theme.MotivateMeGlanceTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // Create the GlanceAppWidget here named QuoteWidget
 
@@ -126,13 +133,21 @@ class RefreshAction : ActionCallback {
         // Get a random quote from the `sampleData` static object. We can't access the
         // `MainViewModel` or `DataRepository` from here so we have to use the static value. Use a
         // `CoroutineWorker` to access live data and use dependency injection
+        val geminiInterface = GeminiInterface()
+        val scope = CoroutineScope(Dispatchers.IO)
+        val generatedQuote = scope.async(Dispatchers.IO) {
+            geminiInterface.getSingleQuote(currentTopicName)
+        }
+
         updateAppWidgetState(context, glanceId) { prefs ->
-            prefs[QuoteWidget.KEY_QUOTE] =
-                sampleData.firstOrNull {
-                    it.name == currentTopicName
-                }?.quotes?.random()?.text ?: "Quote not found"
+            val quote = sampleData.firstOrNull {
+                it.name == currentTopicName
+            }?.quotes?.random() ?: generatedQuote.await()
+            prefs[QuoteWidget.KEY_QUOTE] = quote?.text ?: "Quote not found"
+
         }
         QuoteWidget().update(context, glanceId)
+
     }
 }
 
