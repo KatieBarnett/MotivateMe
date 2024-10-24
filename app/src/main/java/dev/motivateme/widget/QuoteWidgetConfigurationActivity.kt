@@ -21,6 +21,8 @@ import dev.motivateme.MainViewModel
 import dev.motivateme.R
 import dev.motivateme.ui.screens.TopicScreen
 import dev.motivateme.ui.theme.MotivateMeTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -53,23 +55,28 @@ class QuoteWidgetConfigurationActivity : ComponentActivity() {
             MotivateMeTheme {
                 val viewModel: MainViewModel = hiltViewModel()
                 val topics by viewModel.topics.collectAsStateWithLifecycle()
+                val generatedTopics by viewModel.generatedTopics.collectAsStateWithLifecycle()
+                val loading by viewModel.showLoading.collectAsStateWithLifecycle()
                 TopicScreen(
-                    topics = topics,
+                    topics = topics + generatedTopics,
                     welcomeText = stringResource(R.string.widget_config_text),
+                    loading = loading,
                     onTopicClick = { topicName ->
                         // Save the widget state here
                         val context = this@QuoteWidgetConfigurationActivity
                         coroutineScope.launch {
+                            val quote = async(Dispatchers.IO) {
+                                viewModel.showLoading.emit(true)
+                                viewModel.getSingleQuote(topicName)
+                            }
                             val manager = GlanceAppWidgetManager(context)
                             val glanceId = manager.getGlanceIdBy(appWidgetId)
                             updateAppWidgetState(context, glanceId) { prefs ->
                                 prefs[QuoteWidget.KEY_TOPIC] = topicName
-                                prefs[QuoteWidget.KEY_QUOTE] =
-                                    topics.firstOrNull {
-                                        it.name == topicName
-                                    }?.quotes?.firstOrNull()?.text ?: ""
+                                prefs[QuoteWidget.KEY_QUOTE] = quote.await()?.text ?: "Quote not found"
                             }
                             QuoteWidget().update(context, glanceId)
+                            viewModel.showLoading.emit(false)
 
                             val resultValue = Intent().putExtra(
                                 AppWidgetManager.EXTRA_APPWIDGET_ID,
