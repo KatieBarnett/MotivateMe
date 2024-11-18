@@ -5,7 +5,8 @@ import android.content.Context
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import androidx.glance.appwidget.state.updateAppWidgetState
+import androidx.glance.appwidget.state.getAppWidgetState
+import dev.motivateme.models.WidgetState
 import kotlinx.coroutines.runBlocking
 
 // Create the GlanceAppWidgetReceiver here named QuoteWidgetReceiver
@@ -24,11 +25,10 @@ class QuoteWidgetReceiver : GlanceAppWidgetReceiver() {
         appWidgetIds.forEach { appWidgetId ->
             runBlocking {
                 val glanceId = GlanceAppWidgetManager(context).getGlanceIdBy(appWidgetId)
-                var topic = ""
-                updateAppWidgetState(context, glanceId) { prefs ->
-                    topic = prefs[QuoteWidget.KEY_TOPIC] ?: ""
+                val state = getAppWidgetState(context, QuoteWidgetStateDefinition, glanceId)
+                if (state is WidgetState.Available) {
+                    QuoteWidgetWorker.enqueuePeriodicWork(context, appWidgetId, state.topicName)
                 }
-                QuoteWidgetWorker.enqueuePeriodicWork(context, appWidgetId, topic)
             }
         }
     }

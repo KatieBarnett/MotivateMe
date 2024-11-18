@@ -20,12 +20,16 @@ class GeminiInterface @Inject constructor() {
     }
 
     suspend fun getQuote(topicName: String): Quote? {
-        val response =
-            generativeModel?.generateContent(
-                "Give me a single motivational quotes on the topic of $topicName. " +
-                    "Here are some examples of the style I want: " +
+        return try {
+            val response =
+                generativeModel?.generateContent(
+                    "Give me a single motivational quotes on the topic of $topicName. " +
+                        "Here are some examples of the style I want: " +
                         "${sampleData.firstOrNull { it.name == topicName }?.quotes?.map { it.text }}"
-            )
-        return response?.text?.let { Quote(it) }
+                )
+            response?.text?.let { Quote(it) }
+        } catch (e: Exception) {
+            null
+        }
     }
 }

@@ -11,11 +11,6 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import java.io.InputStream
 import java.io.OutputStream
-import kotlin.io.readBytes
-import kotlin.io.use
-import kotlin.text.decodeToString
-import kotlin.text.encodeToByteArray
-import kotlin.text.lowercase
 
 object QuoteWidgetStateDefinition : GlanceStateDefinition<WidgetState> {
 

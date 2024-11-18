@@ -1,21 +1,28 @@
 package dev.motivateme.widget
 
 import android.content.Context
+import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import dev.motivateme.data.GeminiInterface
-import dev.motivateme.widget.QuoteWidget.Companion.KEY_QUOTE
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import dev.motivateme.data.QuoteDataSource
+import dev.motivateme.models.WidgetState
 import java.util.concurrent.TimeUnit
 
-class QuoteWidgetWorker(
-    private val context: Context,
-    params: WorkerParameters
+@HiltWorker
+class QuoteWidgetWorker @AssistedInject constructor(
+    @Assisted private val context: Context,
+    @Assisted params: WorkerParameters,
+    private val quoteDataSource: QuoteDataSource
 ) : CoroutineWorker(context, params) {
 
     companion object {
@@ -55,21 +62,57 @@ class QuoteWidgetWorker(
     }
 
     override suspend fun doWork(): Result {
-        val geminiInterface = GeminiInterface()
-        val appWidgetId = inputData.getInt(APP_WIDGET_ID_EXTRA, -1)
-        val currentTopicName = inputData.getString(TOPIC_KEY_EXTRA)
+        val appWidgetManager = GlanceAppWidgetManager(context)
 
-        if (appWidgetId == -1 || currentTopicName.isNullOrBlank()) {
-            return Result.failure()
-        }
+        val targetId = inputData.getInt(APP_WIDGET_ID_EXTRA, -1)
+        val targetTopic = inputData.getString(TOPIC_KEY_EXTRA)
 
-        val glanceId = GlanceAppWidgetManager(context).getGlanceIdBy(appWidgetId)
-        val generatedQuote = geminiInterface.getQuote(currentTopicName)
-        updateAppWidgetState(context, glanceId) { prefs ->
-            prefs[KEY_QUOTE] = generatedQuote?.text ?: "Quote not found"
+        if (targetId != -1) {
+            val glanceId = appWidgetManager.getGlanceIdBy(targetId)
+            val topicToUpdate = if (!targetTopic.isNullOrBlank()) {
+                targetTopic
+            } else {
+                val currentState = getAppWidgetState<WidgetState>(context, QuoteWidgetStateDefinition, glanceId)
+                if (currentState is WidgetState.Available) currentState.topicName else null
+            }
+
+            if (topicToUpdate != null) {
+                updateWidget(glanceId, topicToUpdate)
+            }
+        } else {
+            appWidgetManager.getGlanceIds(QuoteWidget::class.java).forEach { glanceId ->
+                val currentState = getAppWidgetState<WidgetState>(context, QuoteWidgetStateDefinition, glanceId)
+                if (currentState is WidgetState.Available) {
+                    updateWidget(glanceId, currentState.topicName)
+                }
+            }
         }
+        return Result.success()
+    }
+
+    private suspend fun updateWidget(glanceId: GlanceId, topicName: String) {
+        updateAppWidgetState(
+            context = context,
+            definition = QuoteWidgetStateDefinition,
+            glanceId = glanceId,
+            updateState = { WidgetState.Loading }
+        )
         QuoteWidget().update(context, glanceId)
 
-        return Result.success()
+        val newQuote = quoteDataSource.getQuote(topicName)
+
+        updateAppWidgetState(
+            context = context,
+            definition = QuoteWidgetStateDefinition,
+            glanceId = glanceId,
+            updateState = {
+                if (newQuote != null) {
+                    WidgetState.Available(topicName = topicName, quote = newQuote)
+                } else {
+                    WidgetState.Unavailable(message = "Quote not found")
+                }
+            }
+        )
+        QuoteWidget().update(context, glanceId)
     }
 }
