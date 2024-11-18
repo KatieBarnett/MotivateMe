@@ -19,6 +19,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import dev.motivateme.MainViewModel
 import dev.motivateme.R
+import dev.motivateme.models.Quote
+import dev.motivateme.models.WidgetState
 import dev.motivateme.ui.screens.TopicScreen
 import dev.motivateme.ui.theme.MotivateMeTheme
 import kotlinx.coroutines.Dispatchers
@@ -71,9 +73,15 @@ class QuoteWidgetConfigurationActivity : ComponentActivity() {
                             }
                             val manager = GlanceAppWidgetManager(context)
                             val glanceId = manager.getGlanceIdBy(appWidgetId)
-                            updateAppWidgetState(context, glanceId) { prefs ->
-                                prefs[QuoteWidget.KEY_TOPIC] = topicName
-                                prefs[QuoteWidget.KEY_QUOTE] = quote.await()?.text ?: "Quote not found"
+                            updateAppWidgetState(
+                                context = context,
+                                definition = QuoteWidgetStateDefinition,
+                                glanceId = glanceId
+                            ) { prefs ->
+                                WidgetState.Available(
+                                    topicName = topicName,
+                                    quote = Quote(text = quote.await()?.text ?: "Quote not found")
+                                )
                             }
                             QuoteWidget().update(context, glanceId)
                             viewModel.showLoading.emit(false)

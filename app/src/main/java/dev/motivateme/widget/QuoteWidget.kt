@@ -3,12 +3,11 @@ package dev.motivateme.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
@@ -23,6 +22,7 @@ import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
+import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
@@ -34,24 +34,21 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import dev.motivateme.MainActivity
 import dev.motivateme.R
 import dev.motivateme.data.GeminiInterface
 import dev.motivateme.data.sampleData
+import dev.motivateme.models.Quote
+import dev.motivateme.models.WidgetState
+import dev.motivateme.widget.theme.MotivateMeGlancePreviewTheme
 import dev.motivateme.widget.theme.MotivateMeGlanceTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 
-// Create the GlanceAppWidget here named QuoteWidget
-
 class QuoteWidget : GlanceAppWidget(errorUiLayout = R.layout.widget_error_layout) {
 
-    companion object {
-        val KEY_TOPIC = stringPreferencesKey("topic")
-        val KEY_QUOTE = stringPreferencesKey("quote")
-    }
+    override val stateDefinition = QuoteWidgetStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         // In this method, load data needed to render the AppWidget.
@@ -60,10 +57,21 @@ class QuoteWidget : GlanceAppWidget(errorUiLayout = R.layout.widget_error_layout
 
         provideContent {
             // UI code here
-            MotivateMeGlanceTheme(LocalContext.current) { useDarkColorOnWallPaper ->
-                val displayText = currentState(KEY_QUOTE) ?: "Quote not found"
-                val topic = currentState(KEY_TOPIC) ?: ""
-                QuoteWidgetContent(displayText, topic, useDarkColorOnWallPaper)
+            val appContext = LocalContext.current
+            MotivateMeGlanceTheme(appContext) { useDarkColorOnWallPaper ->
+                val widgetState = currentState<WidgetState>()
+                when (widgetState) {
+                    is WidgetState.Available -> QuoteWidgetContent(
+                        displayText = widgetState.quote.text,
+                        topic = widgetState.topicName,
+                        useDarkColorOnWallPaper = useDarkColorOnWallPaper
+                    )
+                    WidgetState.Loading -> QuoteWidgetLoading(useDarkColorOnWallPaper)
+                    is WidgetState.Unavailable -> QuoteWidgetError(
+                        message = widgetState.message,
+                        useDarkColorOnWallPaper = useDarkColorOnWallPaper
+                    )
+                }
             }
         }
     }
@@ -85,20 +93,15 @@ fun QuoteWidgetContent(
             .fillMaxSize()
             .appWidgetBackground()
             .clickable(actionStartActivity(intent))
-            //.background(GlanceTheme.colors.widgetBackground)
+            .background(GlanceTheme.colors.widgetBackground)
             .cornerRadius(10.dp),
     ) {
         Text(
             text = displayText,
             style = TextStyle(
-                //color = GlanceTheme.colors.primary
-                color = if (useDarkColorOnWallPaper) {
-                    ColorProvider(Color.Black)
-                } else {
-                    ColorProvider(Color.White)
-                }
+                color = GlanceTheme.colors.primary
             ),
-            modifier = GlanceModifier.padding(8.dp)
+            modifier = GlanceModifier.padding(8.dp).padding(end = 16.dp)
         )
 
         Box(
@@ -108,13 +111,8 @@ fun QuoteWidgetContent(
             Image(
                 provider = ImageProvider(R.drawable.ic_launcher_foreground_mono),
                 contentDescription = "Update",
-                //colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
                 colorFilter = ColorFilter.tint(
-                    if (useDarkColorOnWallPaper) {
-                        ColorProvider(Color.Black)
-                    } else {
-                        ColorProvider(Color.White)
-                    }
+                    GlanceTheme.colors.primary
                 ),
                 contentScale = ContentScale.Fit,
                 modifier = GlanceModifier
@@ -125,6 +123,61 @@ fun QuoteWidgetContent(
                     )
             )
         }
+    }
+}
+
+@Composable
+fun QuoteWidgetLoading(
+    useDarkColorOnWallPaper: Boolean,
+    modifier: GlanceModifier = GlanceModifier,
+) {
+    val context = LocalContext.current
+    val intent = Intent(context, MainActivity::class.java)
+    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .fillMaxSize()
+            .appWidgetBackground()
+            .clickable(actionStartActivity(intent))
+            .background(GlanceTheme.colors.widgetBackground)
+            .cornerRadius(10.dp),
+    ) {
+        Text(
+            text = "Loading...",
+            style = TextStyle(
+                GlanceTheme.colors.primary
+            ),
+            modifier = GlanceModifier.padding(8.dp)
+        )
+    }
+}
+
+@Composable
+fun QuoteWidgetError(
+    message: String,
+    useDarkColorOnWallPaper: Boolean,
+    modifier: GlanceModifier = GlanceModifier,
+) {
+    val context = LocalContext.current
+    val intent = Intent(context, MainActivity::class.java)
+    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .fillMaxSize()
+            .appWidgetBackground()
+            .clickable(actionStartActivity(intent))
+            .background(GlanceTheme.colors.widgetBackground)
+            .cornerRadius(10.dp),
+    ) {
+        Text(
+            text = message,
+            style = TextStyle(
+                GlanceTheme.colors.primary
+            ),
+            modifier = GlanceModifier.padding(8.dp)
+        )
     }
 }
 
@@ -139,6 +192,15 @@ class RefreshAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
+        updateAppWidgetState(
+            context = context,
+            definition = QuoteWidgetStateDefinition,
+            glanceId = glanceId
+        ) { prefs ->
+            WidgetState.Loading
+        }
+        QuoteWidget().update(context, glanceId)
+
         val currentTopicName = parameters[topicKey]
 
         // Note - if BuildConfig.IS_GEMINI_ENABLED is false here `getSingleQuote` will return null
@@ -149,12 +211,22 @@ class RefreshAction : ActionCallback {
         val generatedQuote = scope.async(Dispatchers.IO) {
             geminiInterface.getSingleQuote(currentTopicName)
         }
-
-        updateAppWidgetState(context, glanceId) { prefs ->
-            val quote = sampleData.firstOrNull {
-                it.name == currentTopicName
-            }?.quotes?.random() ?: generatedQuote.await()
-            prefs[QuoteWidget.KEY_QUOTE] = quote?.text ?: "Quote not found"
+        val newQuote = sampleData.firstOrNull {
+            it.name == currentTopicName
+        }?.quotes?.random() ?: generatedQuote.await()
+        updateAppWidgetState(
+            context = context,
+            definition = QuoteWidgetStateDefinition,
+            glanceId = glanceId
+        ) { prefs ->
+            if (newQuote != null && currentTopicName != null) {
+                WidgetState.Available(
+                    topicName = currentTopicName,
+                    quote = Quote(text = newQuote.text)
+                )
+            } else {
+                WidgetState.Unavailable(message = "Quote not found")
+            }
         }
         QuoteWidget().update(context, glanceId)
     }
@@ -164,7 +236,25 @@ class RefreshAction : ActionCallback {
 @Composable
 @Preview
 fun QuoteWidgetContentPreview() {
-    MotivateMeGlanceTheme(LocalContext.current) { useDarkColorOnWallPaper ->
+    MotivateMeGlancePreviewTheme(false) { useDarkColorOnWallPaper ->
         QuoteWidgetContent("Hello widget!", "Topic", useDarkColorOnWallPaper)
+    }
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Composable
+@Preview
+fun QuoteWidgetLoadingPreview() {
+    MotivateMeGlancePreviewTheme(false) { useDarkColorOnWallPaper ->
+        QuoteWidgetLoading(useDarkColorOnWallPaper)
+    }
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Composable
+@Preview
+fun QuoteWidgetErrorPreview() {
+    MotivateMeGlancePreviewTheme(false) { useDarkColorOnWallPaper ->
+        QuoteWidgetError("Error message!", useDarkColorOnWallPaper)
     }
 }

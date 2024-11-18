@@ -4,17 +4,15 @@ import android.content.Context
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.work.CoroutineWorker
-import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dev.motivateme.data.GeminiInterface
 import dev.motivateme.data.sampleData
-import dev.motivateme.widget.QuoteWidget.Companion.KEY_QUOTE
-import dev.motivateme.widget.QuoteWidget.Companion.KEY_TOPIC
+import dev.motivateme.models.Quote
+import dev.motivateme.models.WidgetState
 import java.util.concurrent.TimeUnit
 
 class QuoteWidgetWorker(
@@ -45,7 +43,6 @@ class QuoteWidgetWorker(
             )
         }
 
-
         fun cancel(context: Context) {
             WorkManager.getInstance(context).cancelUniqueWork(uniqueWorkName)
         }
@@ -56,24 +53,47 @@ class QuoteWidgetWorker(
         val appWidgetManager = GlanceAppWidgetManager(context)
         // Fetch the current state of each widget, get the current topic, fetch a new quote and update the state
         appWidgetManager.getGlanceIds(QuoteWidget::class.java).forEach { glanceId ->
-            val currentWidgetState =
-                getAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId)
-            val currentTopicName = currentWidgetState[KEY_TOPIC]
+            val currentState: WidgetState =
+                getAppWidgetState(context, QuoteWidgetStateDefinition, glanceId)
+            if (currentState is WidgetState.Available) {
+                updateAppWidgetState(
+                    context = context,
+                    definition = QuoteWidgetStateDefinition,
+                    glanceId = glanceId,
+                    updateState = {
+                        WidgetState.Loading
+                    }
+                )
+                QuoteWidget().update(context, glanceId)
 
-            // Note - if BuildConfig.IS_GEMINI_ENABLED is false here `getSingleQuote` will return null
-            // and we wouldn't be accessing a generated topic here anyway so we don't need to check
-            // the value of the setting
-            val generatedQuote = geminiInterface.getSingleQuote(currentTopicName)
-            val newQuote = sampleData.firstOrNull {
-                it.name == currentTopicName
-            }?.quotes?.random() ?: generatedQuote
+                // Note - if BuildConfig.IS_GEMINI_ENABLED is false here `getSingleQuote` will return null
+                // and we wouldn't be accessing a generated topic here anyway so we don't need to check
+                // the value of the setting
+                // Do the work to generate the quote
+                val generatedQuote = geminiInterface.getSingleQuote(currentState.topicName)
+                val newQuote = sampleData.firstOrNull {
+                    it.name == currentState.topicName
+                }?.quotes?.random() ?: generatedQuote
 
-            // Update the widget with this new state
-            updateAppWidgetState(context, glanceId) { prefs ->
-                prefs[KEY_QUOTE] = newQuote?.text ?: "Quote not found"
+                // Update the widget with this new state
+                updateAppWidgetState(
+                    context = context,
+                    definition = QuoteWidgetStateDefinition,
+                    glanceId = glanceId,
+                    updateState = {
+                        if (newQuote != null) {
+                            WidgetState.Available(
+                                topicName = currentState.topicName,
+                                quote = Quote(text = newQuote.text)
+                            )
+                        } else {
+                            WidgetState.Unavailable(message = "Quote not found")
+                        }
+                    }
+                )
+                // Let the widget know there is a new state so it updates the UI
+                QuoteWidget().update(context, glanceId)
             }
-            // Let the widget know there is a new state so it updates the UI
-            QuoteWidget().update(context, glanceId)
         }
         return Result.success()
     }

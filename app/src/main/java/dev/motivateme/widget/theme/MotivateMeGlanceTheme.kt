@@ -52,3 +52,19 @@ fun MotivateMeGlanceTheme(
         content.invoke(useDarkColorOnWallpaper)
     }
 }
+
+@Composable
+fun MotivateMeGlancePreviewTheme(
+    useDarkColorOnWallpaper: Boolean,
+    content: @Composable (Boolean) -> Unit,
+) {
+    GlanceTheme(
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            GlanceTheme.colors
+        } else {
+            MotivateMeGlanceColorScheme.colors
+        }
+    ) {
+        content.invoke(useDarkColorOnWallpaper)
+    }
+}
