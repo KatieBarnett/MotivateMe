@@ -26,7 +26,7 @@
         </activity>
 
         <activity
-            android:name=".widget.QuoteWidgetConfigurationActivity"
+            android:name=".widget.quote.QuoteWidgetConfigurationActivity"
             android:theme="@style/Theme.App.Starting"
             android:exported="false">
             <intent-filter>
@@ -37,7 +37,7 @@
         <!-- Add QuoteWidgetReceiver here with reference to quote_widget_info.xml -->
 
         <receiver
-            android:name=".widget.QuoteWidgetReceiver"
+            android:name=".widget.quote.QuoteWidgetReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -46,6 +46,27 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/quote_widget_info" />
         </receiver>
+
+        <receiver
+            android:name=".widget.image.ImageWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/image_widget_info" />
+        </receiver>
+
+        <provider
+            android:name=".widget.image.ImageFileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/image_paths" />
+        </provider>
 
         <!-- This is used for the CoroutineWorker -->
         <provider

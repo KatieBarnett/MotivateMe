@@ -3,16 +3,16 @@ package dev.motivateme.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed interface WidgetState {
+sealed interface QuoteWidgetState {
     @Serializable
-    data object Loading : WidgetState
+    data object Loading : QuoteWidgetState
 
     @Serializable
     data class Available(
         val topicName: String,
         val quote: Quote,
-    ) : WidgetState
+    ) : QuoteWidgetState
 
     @Serializable
-    data class Unavailable(val message: String) : WidgetState
+    data class Unavailable(val message: String) : QuoteWidgetState
 }

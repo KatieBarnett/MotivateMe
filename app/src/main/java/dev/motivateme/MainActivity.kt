@@ -20,7 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.motivateme.ui.screens.QuoteScreen
 import dev.motivateme.ui.screens.TopicScreen
 import dev.motivateme.ui.theme.MotivateMeTheme
-import dev.motivateme.widget.QuoteWidget
+import dev.motivateme.widget.quote.QuoteWidget
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

@@ -71,6 +71,11 @@ dependencies {
 
     implementation(libs.work)
 
+    implementation(libs.coil)
+
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.kotlinx.converter)
+
     // Uncomment these when using Glance
     implementation(libs.glance.appwidget)
     implementation(libs.glance.appwidget.preview)

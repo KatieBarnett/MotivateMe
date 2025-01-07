@@ -9,6 +9,7 @@ import javax.inject.Singleton
 
 @Singleton
 class GeminiInterface @Inject constructor() {
+    // Get the API key from https://aistudio.google.com/apikey
     private val apiKey get() = "YOUR_API_KEY"
     private val splittingDelimiter = "::"
 

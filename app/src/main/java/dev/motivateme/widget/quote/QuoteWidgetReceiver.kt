@@ -1,4 +1,4 @@
-package dev.motivateme.widget
+package dev.motivateme.widget.quote
 
 import android.appwidget.AppWidgetManager
 import android.content.Context

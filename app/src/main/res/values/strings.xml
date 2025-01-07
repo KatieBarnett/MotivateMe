@@ -2,6 +2,7 @@
     <string name="app_name">MotivateMe</string>
     <string name="welcome_text">Welcome to MotivateMe, get some motivation from these inspirational quotes!</string>
     <string name="widget_config_text">Welcome to MotivateMe, select which topic you would like for your widget:</string>
-    <string name="widget_description">Display a motivational quote</string>
+    <string name="quote_widget_description">Display a motivational quote</string>
+    <string name="image_widget_description">Display a nice image</string>
     <string name="widget_error">Error displaying the MotivateMe Widget. Please remove it and re-add it.</string>
 </resources>

@@ -1,4 +1,4 @@
-package dev.motivateme.widget
+package dev.motivateme.widget.quote
 
 import android.content.Context
 import android.content.Intent
@@ -39,7 +39,7 @@ import dev.motivateme.R
 import dev.motivateme.data.GeminiInterface
 import dev.motivateme.data.sampleData
 import dev.motivateme.models.Quote
-import dev.motivateme.models.WidgetState
+import dev.motivateme.models.QuoteWidgetState
 import dev.motivateme.widget.theme.MotivateMeGlancePreviewTheme
 import dev.motivateme.widget.theme.MotivateMeGlanceTheme
 import kotlinx.coroutines.CoroutineScope
@@ -59,15 +59,14 @@ class QuoteWidget : GlanceAppWidget(errorUiLayout = R.layout.widget_error_layout
             // UI code here
             val appContext = LocalContext.current
             MotivateMeGlanceTheme(appContext) { useDarkColorOnWallPaper ->
-                val widgetState = currentState<WidgetState>()
-                when (widgetState) {
-                    is WidgetState.Available -> QuoteWidgetContent(
+                when (val widgetState = currentState<QuoteWidgetState>()) {
+                    is QuoteWidgetState.Available -> QuoteWidgetContent(
                         displayText = widgetState.quote.text,
                         topic = widgetState.topicName,
                         useDarkColorOnWallPaper = useDarkColorOnWallPaper
                     )
-                    WidgetState.Loading -> QuoteWidgetLoading(useDarkColorOnWallPaper)
-                    is WidgetState.Unavailable -> QuoteWidgetError(
+                    QuoteWidgetState.Loading -> QuoteWidgetLoading(useDarkColorOnWallPaper)
+                    is QuoteWidgetState.Unavailable -> QuoteWidgetError(
                         message = widgetState.message,
                         useDarkColorOnWallPaper = useDarkColorOnWallPaper
                     )
@@ -197,7 +196,7 @@ class RefreshAction : ActionCallback {
             definition = QuoteWidgetStateDefinition,
             glanceId = glanceId
         ) { prefs ->
-            WidgetState.Loading
+            QuoteWidgetState.Loading
         }
         QuoteWidget().update(context, glanceId)
 
@@ -220,12 +219,12 @@ class RefreshAction : ActionCallback {
             glanceId = glanceId
         ) { prefs ->
             if (newQuote != null && currentTopicName != null) {
-                WidgetState.Available(
+                QuoteWidgetState.Available(
                     topicName = currentTopicName,
                     quote = Quote(text = newQuote.text)
                 )
             } else {
-                WidgetState.Unavailable(message = "Quote not found")
+                QuoteWidgetState.Unavailable(message = "Quote not found")
             }
         }
         QuoteWidget().update(context, glanceId)

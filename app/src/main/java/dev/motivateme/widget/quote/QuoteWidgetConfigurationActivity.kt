@@ -1,4 +1,4 @@
-package dev.motivateme.widget
+package dev.motivateme.widget.quote
 
 import android.appwidget.AppWidgetManager
 import android.content.Intent
@@ -20,7 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.motivateme.MainViewModel
 import dev.motivateme.R
 import dev.motivateme.models.Quote
-import dev.motivateme.models.WidgetState
+import dev.motivateme.models.QuoteWidgetState
 import dev.motivateme.ui.screens.TopicScreen
 import dev.motivateme.ui.theme.MotivateMeTheme
 import kotlinx.coroutines.Dispatchers
@@ -78,7 +78,7 @@ class QuoteWidgetConfigurationActivity : ComponentActivity() {
                                 definition = QuoteWidgetStateDefinition,
                                 glanceId = glanceId
                             ) { prefs ->
-                                WidgetState.Available(
+                                QuoteWidgetState.Available(
                                     topicName = topicName,
                                     quote = Quote(text = quote.await()?.text ?: "Quote not found")
                                 )

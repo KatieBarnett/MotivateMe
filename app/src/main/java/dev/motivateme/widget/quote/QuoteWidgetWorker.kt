@@ -1,4 +1,4 @@
-package dev.motivateme.widget
+package dev.motivateme.widget.quote
 
 import android.content.Context
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -12,7 +12,7 @@ import androidx.work.WorkerParameters
 import dev.motivateme.data.GeminiInterface
 import dev.motivateme.data.sampleData
 import dev.motivateme.models.Quote
-import dev.motivateme.models.WidgetState
+import dev.motivateme.models.QuoteWidgetState
 import java.util.concurrent.TimeUnit
 
 class QuoteWidgetWorker(
@@ -53,15 +53,15 @@ class QuoteWidgetWorker(
         val appWidgetManager = GlanceAppWidgetManager(context)
         // Fetch the current state of each widget, get the current topic, fetch a new quote and update the state
         appWidgetManager.getGlanceIds(QuoteWidget::class.java).forEach { glanceId ->
-            val currentState: WidgetState =
+            val currentState: QuoteWidgetState =
                 getAppWidgetState(context, QuoteWidgetStateDefinition, glanceId)
-            if (currentState is WidgetState.Available) {
+            if (currentState is QuoteWidgetState.Available) {
                 updateAppWidgetState(
                     context = context,
                     definition = QuoteWidgetStateDefinition,
                     glanceId = glanceId,
                     updateState = {
-                        WidgetState.Loading
+                        QuoteWidgetState.Loading
                     }
                 )
                 QuoteWidget().update(context, glanceId)
@@ -82,12 +82,12 @@ class QuoteWidgetWorker(
                     glanceId = glanceId,
                     updateState = {
                         if (newQuote != null) {
-                            WidgetState.Available(
+                            QuoteWidgetState.Available(
                                 topicName = currentState.topicName,
                                 quote = Quote(text = newQuote.text)
                             )
                         } else {
-                            WidgetState.Unavailable(message = "Quote not found")
+                            QuoteWidgetState.Unavailable(message = "Quote not found")
                         }
                     }
                 )
