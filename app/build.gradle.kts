@@ -19,6 +19,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("boolean", "IS_GEMINI_ENABLED", "true")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
