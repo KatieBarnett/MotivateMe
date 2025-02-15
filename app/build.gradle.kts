@@ -21,7 +21,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("boolean", "IS_GEMINI_ENABLED", "true")
+        buildConfigField("boolean", "IS_GEMINI_ENABLED", "false")
     }
 
     buildFeatures {
