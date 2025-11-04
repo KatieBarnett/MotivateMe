@@ -4,9 +4,14 @@ import android.content.Context
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.work.CoroutineWorker
+import androidx.work.Data
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dev.motivateme.data.GeminiInterface
 import dev.motivateme.widget.QuoteWidget.Companion.KEY_QUOTE
+import java.util.concurrent.TimeUnit
 
 class QuoteWidgetWorker(
     private val context: Context,
@@ -16,6 +21,37 @@ class QuoteWidgetWorker(
     companion object {
         const val APP_WIDGET_ID_EXTRA = "app_widget_id_extra"
         const val TOPIC_KEY_EXTRA = "topic_key_extra"
+
+        fun enqueuePeriodicWork(context: Context, appWidgetId: Int, topic: String, force: Boolean = false) {
+            val workManager = WorkManager.getInstance(context)
+
+            val inputData = Data.Builder()
+                .putInt(APP_WIDGET_ID_EXTRA, appWidgetId)
+                .putString(TOPIC_KEY_EXTRA, topic)
+                .build()
+
+            val uniqueWorkName = "${QuoteWidgetWorker::class.java.simpleName}-$appWidgetId"
+
+            val request =
+                PeriodicWorkRequestBuilder<QuoteWidgetWorker>(15, TimeUnit.MINUTES)
+                    .setInputData(inputData)
+                    .build()
+
+            workManager.enqueueUniquePeriodicWork(
+                uniqueWorkName = uniqueWorkName,
+                existingPeriodicWorkPolicy = if (force) {
+                    ExistingPeriodicWorkPolicy.UPDATE
+                } else {
+                    ExistingPeriodicWorkPolicy.KEEP
+                },
+                request = request
+            )
+        }
+
+        fun cancel(context: Context, appWidgetId: Int) {
+            val uniqueWorkName = "${QuoteWidgetWorker::class.java.simpleName}-$appWidgetId"
+            WorkManager.getInstance(context).cancelUniqueWork(uniqueWorkName)
+        }
     }
 
     override suspend fun doWork(): Result {
