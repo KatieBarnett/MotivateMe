@@ -16,13 +16,13 @@ import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
-import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
@@ -35,12 +35,12 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import dev.motivateme.MainActivity
 import dev.motivateme.R
-import dev.motivateme.data.sampleData
 import dev.motivateme.widget.theme.MotivateMeGlanceTheme
-
-// Create the GlanceAppWidget here named QuoteWidget
 
 class QuoteWidget : GlanceAppWidget() {
 
@@ -50,13 +50,7 @@ class QuoteWidget : GlanceAppWidget() {
     }
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-
-        // In this method, load data needed to render the AppWidget.
-        // Use `withContext` to switch to another thread for long
-        // running operations.
-
         provideContent {
-            // UI code here
             MotivateMeGlanceTheme {
                 val displayText = currentState(KEY_QUOTE) ?: "Quote not found"
                 val topic = currentState(KEY_TOPIC) ?: ""
@@ -123,16 +117,18 @@ class RefreshAction : ActionCallback {
         parameters: ActionParameters,
     ) {
         val currentTopicName = parameters[topicKey]
-        // Get a random quote from the `sampleData` static object. We can't access the
-        // `MainViewModel` or `DataRepository` from here so we have to use the static value. Use a
-        // `CoroutineWorker` to access live data and use dependency injection
-        updateAppWidgetState(context, glanceId) { prefs ->
-            prefs[QuoteWidget.KEY_QUOTE] =
-                sampleData.firstOrNull {
-                    it.name == currentTopicName
-                }?.quotes?.random()?.text ?: "Quote not found"
-        }
-        QuoteWidget().update(context, glanceId)
+        val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
+
+        val inputData = Data.Builder()
+            .putInt(QuoteWidgetWorker.APP_WIDGET_ID_EXTRA, appWidgetId)
+            .putString(QuoteWidgetWorker.TOPIC_KEY_EXTRA, currentTopicName)
+            .build()
+
+        val refreshRequest = OneTimeWorkRequestBuilder<QuoteWidgetWorker>()
+            .setInputData(inputData)
+            .build()
+
+        WorkManager.getInstance(context).enqueue(refreshRequest)
     }
 }
 
@@ -145,4 +141,3 @@ fun QuoteWidgetContentPreview() {
         QuoteWidgetContent("Hello widget!", "Topic")
     }
 }
-
