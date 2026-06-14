@@ -12,10 +12,10 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.glance.appwidget.updateAll
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
 import dev.motivateme.ui.screens.QuoteScreen
 import dev.motivateme.ui.screens.TopicScreen
@@ -31,34 +31,37 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MotivateMeTheme {
-                val navController = rememberNavController()
+                val backStack = rememberNavBackStack(Home as NavKey)
                 val viewModel: MainViewModel = hiltViewModel()
-                NavHost(
-                    navController = navController,
-                    startDestination = Home,
-                ) {
-                    composable<Home> {
-                        val topics by viewModel.topics.collectAsStateWithLifecycle()
-                        TopicScreen(
-                            topics = topics,
-                            onTopicClick = { topicName ->
-                                navController.navigate(QuotesDestination(topicName))
-                            },
-                            modifier = Modifier.fillMaxSize()
-                        )
+                NavDisplay(
+                    backStack = backStack,
+                    onBack = { backStack.removeLastOrNull() },
+                    entryProvider = { key: NavKey ->
+                        when (key) {
+                            is Home -> NavEntry(key) {
+                                val topics by viewModel.topics.collectAsStateWithLifecycle()
+                                TopicScreen(
+                                    topics = topics,
+                                    onTopicClick = { topicName ->
+                                        backStack.add(QuotesDestination(topicName))
+                                    },
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            }
+                            is QuotesDestination -> NavEntry(key) {
+                                val topicName = key.topicName
+                                val quotes = viewModel.getQuotes(topicName)
+                                QuoteScreen(
+                                    topicName = topicName,
+                                    quotes = quotes,
+                                    onNavigateBack = { backStack.removeLastOrNull() },
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                            else -> error("Unknown key: $key")
+                        }
                     }
-                    composable<QuotesDestination> { backStackEntry ->
-                        val quoteDestination: QuotesDestination = backStackEntry.toRoute()
-                        val topicName = quoteDestination.topicName
-                        val quotes = viewModel.getQuotes(topicName)
-                        QuoteScreen(
-                            topicName = topicName,
-                            quotes = quotes,
-                            onNavigateBack = { navController.popBackStack() },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
+                )
             }
             LaunchedEffect(Unit) {
                 QuoteWidget().updateAll(this@MainActivity)
