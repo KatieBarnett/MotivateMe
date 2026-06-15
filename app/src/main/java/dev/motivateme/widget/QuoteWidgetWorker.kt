@@ -9,6 +9,8 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -26,8 +28,29 @@ class QuoteWidgetWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     companion object {
+        private const val TAG = "QuoteWidgetWorker"
         const val APP_WIDGET_ID_EXTRA = "app_widget_id_extra"
         const val TOPIC_KEY_EXTRA = "topic_key_extra"
+
+        fun enqueueOneTimeWork(context: Context, appWidgetId: Int, topic: String) {
+            val workManager = WorkManager.getInstance(context)
+            val inputData = Data.Builder()
+                .putInt(APP_WIDGET_ID_EXTRA, appWidgetId)
+                .putString(TOPIC_KEY_EXTRA, topic)
+                .build()
+
+            val uniqueWorkName = "${QuoteWidgetWorker::class.java.simpleName}-OneTime-$appWidgetId"
+
+            val request = OneTimeWorkRequestBuilder<QuoteWidgetWorker>()
+                .setInputData(inputData)
+                .build()
+
+            workManager.enqueueUniqueWork(
+                uniqueWorkName,
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
 
         fun enqueuePeriodicWork(context: Context, appWidgetId: Int, topic: String, force: Boolean = false) {
             val workManager = WorkManager.getInstance(context)
@@ -81,7 +104,7 @@ class QuoteWidgetWorker @AssistedInject constructor(
             }
         } else {
             appWidgetManager.getGlanceIds(QuoteWidget::class.java).forEach { glanceId ->
-                val currentState = getAppWidgetState<WidgetState>(context, QuoteWidgetStateDefinition, glanceId)
+                val currentState = getAppWidgetState(context, QuoteWidgetStateDefinition, glanceId)
                 if (currentState is WidgetState.Available) {
                     updateWidget(glanceId, currentState.topicName)
                 }

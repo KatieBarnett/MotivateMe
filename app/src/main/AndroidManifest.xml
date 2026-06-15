@@ -60,6 +60,10 @@
                 tools:node="remove" />
         </provider>
 
+        <receiver
+            android:name=".widget.WidgetPinnedReceiver"
+            android:exported="true" />
+
     </application>
 
 </manifest>

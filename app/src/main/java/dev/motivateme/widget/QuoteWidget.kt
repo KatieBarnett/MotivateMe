@@ -36,9 +36,6 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import dev.motivateme.MainActivity
 import dev.motivateme.R
 import dev.motivateme.models.WidgetState
@@ -140,7 +137,7 @@ fun QuoteWidgetLoading(
             .fillMaxSize()
             .appWidgetBackground()
             .clickable(actionStartActivity(intent))
-            //.background(GlanceTheme.colors.widgetBackground)
+            // .background(GlanceTheme.colors.widgetBackground)
             .cornerRadius(10.dp),
     ) {
         Text(
@@ -172,7 +169,7 @@ fun QuoteWidgetError(
             .fillMaxSize()
             .appWidgetBackground()
             .clickable(actionStartActivity(intent))
-            //.background(GlanceTheme.colors.widgetBackground)
+            // .background(GlanceTheme.colors.widgetBackground)
             .cornerRadius(10.dp),
     ) {
         Text(
@@ -211,17 +208,7 @@ class RefreshAction : ActionCallback {
 
         val currentTopicName = parameters[topicKey]
         val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
-
-        val inputData = Data.Builder()
-            .putInt(QuoteWidgetWorker.APP_WIDGET_ID_EXTRA, appWidgetId)
-            .putString(QuoteWidgetWorker.TOPIC_KEY_EXTRA, currentTopicName)
-            .build()
-
-        val refreshRequest = OneTimeWorkRequestBuilder<QuoteWidgetWorker>()
-            .setInputData(inputData)
-            .build()
-
-        WorkManager.getInstance(context).enqueue(refreshRequest)
+        QuoteWidgetWorker.enqueueOneTimeWork(context, appWidgetId, currentTopicName ?: "")
     }
 }
 
